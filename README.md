@@ -60,9 +60,10 @@ Example:  /cars?search=BMW
 - Users can book cars
 - Each booking is stored in database
 - Booking count increases using `$inc`
-
 Example:
 ```js
 $inc: { booking_count: 1 }
 
-##Live_Link : https://drivefleet-server-2y7v.onrender.com
+---
+
+## Live_Link : https://drivefleet-server-2y7v.onrender.com
