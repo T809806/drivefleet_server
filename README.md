@@ -1,16 +1,16 @@
-# 🚗 DriveFleet Server (Backend API)
+# DriveFleet Server (Backend API)
 
 This is the backend server for the DriveFleet Car Rental Website. It is built using Node.js, Express.js, and MongoDB.
 
 ---
 
-## 🌐 Live API / Server Info
+##  Live API / Server Info
 
 Base URL: http://localhost:5000
 
 ---
 
-## 🛠️ Technologies Used
+##  Technologies Used
 
 - Node.js
 - Express.js
@@ -21,7 +21,7 @@ Base URL: http://localhost:5000
 
 ---
 
-## 🔐 Authentication System (JWT with Cookies)
+##  Authentication System (JWT with Cookies)
 
 - User login generates a JWT token
 - Token is stored in HTTPOnly cookie
@@ -34,7 +34,7 @@ Base URL: http://localhost:5000
 
 ---
 
-## 🚗 Car API Routes
+##  Car API Routes
 
 - GET /cars → Get all cars
 - GET /cars/:id → Get single car details
@@ -44,7 +44,7 @@ Base URL: http://localhost:5000
 
 ---
 
-## 🔍 Search & Filter System
+##  Search & Filter System
 
 - Search cars by name using MongoDB `$regex`
 - Filter cars by type (SUV, Sedan, etc.)
@@ -55,7 +55,7 @@ Example:  /cars?search=BMW
 
 ---
 
-## 📦 Booking System
+##  Booking System
 
 - Users can book cars
 - Each booking is stored in database
@@ -64,3 +64,5 @@ Example:  /cars?search=BMW
 Example:
 ```js
 $inc: { booking_count: 1 }
+
+##Live_Link : https://drivefleet-server-2y7v.onrender.com
