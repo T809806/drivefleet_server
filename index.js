@@ -10,9 +10,7 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// ========================
-// MIDDLEWARE
-// ========================
+
 
 app.use(cors({
   origin: "http://localhost:5173",
@@ -22,16 +20,12 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// ========================
-// MONGODB
-// ========================
+
 
 const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 
-// ========================
-// JWT VERIFY
-// ========================
+
 
 const verifyToken = (req, res, next) => {
   const token = req.cookies?.token;
@@ -49,9 +43,7 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// ========================
-// SERVER
-// ========================
+
 
 async function run() {
   try {
@@ -62,9 +54,7 @@ async function run() {
     const carCollection = db.collection("cars");
     const bookingCollection = db.collection("bookings");
 
-    // ========================
-    // AUTH ROUTES
-    // ========================
+    
 
     app.post("/login", async (req, res) => {
       const { email } = req.body;
@@ -85,12 +75,12 @@ async function run() {
       res.send({ success: true, message: "Login success" });
     });
 
-    // 👇 ONLY ONE /me ROUTE (IMPORTANT)
+   
     app.get("/me", verifyToken, (req, res) => {
       res.send({ user: req.user });
     });
 
-    // LOGOUT
+    
     app.post("/logout", (req, res) => {
       res.clearCookie("token", {
         httpOnly: true,
@@ -102,9 +92,7 @@ async function run() {
       res.send({ success: true, message: "Logged out" });
     });
 
-    // ========================
-    // CAR ROUTES
-    // ========================
+    
 
     app.get("/cars", async (req, res) => {
       const search = req.query.search;
@@ -134,7 +122,7 @@ async function run() {
       res.send(car);
     });
 
-    // ADD CAR (PROTECTED)
+    
     app.post("/cars", verifyToken, async (req, res) => {
       try {
         const car = {
@@ -175,9 +163,7 @@ async function run() {
       res.send(result);
     });
 
-    // ========================
-    // MY CARS (PROTECTED)
-    // ========================
+    
 
     app.get("/my-cars", verifyToken, async (req, res) => {
       const email = req.user.email;
@@ -189,7 +175,7 @@ async function run() {
       res.send(result);
     });
 
-    // BOOKINGS
+    
     app.post("/bookings", async (req, res) => {
       const booking = req.body;
 
@@ -223,9 +209,7 @@ async function run() {
 
 run().catch(console.dir);
 
-// ========================
-// ROOT
-// ========================
+
 
 app.get("/", (req, res) => {
   res.send("DriveFleet Server Running 🚗");
