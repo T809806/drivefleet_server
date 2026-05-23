@@ -231,9 +231,7 @@ app.get("/", (req, res) => {
   res.send("DriveFleet Server Running 🚗");
 });
 
-// ========================
-// START
-// ========================
+
 
 app.listen(port, () => {
   console.log("Server running on port", port);
