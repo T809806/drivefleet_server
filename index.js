@@ -10,31 +10,29 @@ import { MongoClient, ObjectId } from "mongodb";
     const app = express();
     const port = process.env.PORT || 5000;
 
-
-
 app.use(cors({
+
   origin: "http://localhost:5173",
   credentials: true
+
 }));
 
 app.use(express.json());
 app.use(cookieParser());
 
+     const uri = process.env.MONGO_URI;
+     const client = new MongoClient(uri);
+     const verifyToken = (req, res, next) => {
+     const token = req.cookies?.token;
 
+ if (!token) {
 
-const uri = process.env.MONGO_URI;
-const client = new MongoClient(uri);
-
-
-
-const verifyToken = (req, res, next) => {
-  const token = req.cookies?.token;
-
-  if (!token) {
     return res.status(401).send({ message: "Unauthorized" });
+
   }
 
-  try {
+try {
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
@@ -43,10 +41,10 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-
-
 async function run() {
+
   try {
+
     await client.connect();
     console.log("MongoDB Connected Successfully");
 
@@ -54,150 +52,143 @@ async function run() {
     const carCollection = db.collection("cars");
     const bookingCollection = db.collection("bookings");
 
-    
+   app.post("/login", async (req, res) => {
+   const { email } = req.body;
+   const token = jwt.sign(
 
-    app.post("/login", async (req, res) => {
-      const { email } = req.body;
+    { email },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+ );
 
-      const token = jwt.sign(
-        { email },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
+res.cookie("token", token, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax",
+  path: "/"
 
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax",
-        path: "/"
-      });
+  });
 
-      res.send({ success: true, message: "Login success" });
-    });
+res.send({ success: true, message: "Login success" });
 
-   
-    app.get("/me", verifyToken, (req, res) => {
-      res.send({ user: req.user });
-    });
+});
 
-    
-    app.post("/logout", (req, res) => {
-      res.clearCookie("token", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: false,
-        path: "/"
-      });
+app.get("/me", verifyToken, (req, res) => {
+res.send({ user: req.user });
 
-      res.send({ success: true, message: "Logged out" });
-    });
+});
 
-    
+ app.post("/logout", (req, res) => {
 
-    app.get("/cars", async (req, res) => {
-      const search = req.query.search;
-      const type = req.query.type;
+  res.clearCookie("token", {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: false,
+  path: "/"
+ });
 
-      let query = {};
+ res.send({ success: true, message: "Logged out" });
 
-      if (search) {
-        query.name = { $regex: search, $options: "i" };
-      }
+ });
 
-      if (type) {
-        query.type = type;
-      }
+app.get("/cars", async (req, res) => {
 
-      const cars = await carCollection.find(query).toArray();
-      res.send(cars);
-    });
+const search = req.query.search;
+ const type = req.query.type;
+let query = {};
+if (search) {
 
-    app.get("/cars/:id", async (req, res) => {
-      const id = req.params.id;
+  query.name = { $regex: search, $options: "i" };
 
-      const car = await carCollection.findOne({
-        _id: new ObjectId(id),
-      });
+ }
 
-      res.send(car);
-    });
+ if (type) {
 
-    
-    app.post("/cars", verifyToken, async (req, res) => {
-      try {
-        const car = {
-          ...req.body,
-          booking_count: 0
-        };
+   query.type = type;
 
-        const result = await carCollection.insertOne(car);
+ }
 
-        res.send({
-          success: true,
-          insertedId: result.insertedId,
-        });
+ const cars = await carCollection.find(query).toArray();
+ res.send(cars);
+ });
 
-      } catch (err) {
-        res.status(500).send({ message: "Server error" });
-      }
-    });
 
-    app.delete("/cars/:id", async (req, res) => {
-      const id = req.params.id;
+app.get("/cars/:id", async (req, res) => {
+   const id = req.params.id;
+  const car = await carCollection.findOne({
+    _id: new ObjectId(id),
+ });
 
-      const result = await carCollection.deleteOne({
-        _id: new ObjectId(id),
-      });
-
-      res.send(result);
-    });
-
-    app.put("/cars/:id", async (req, res) => {
-      const id = req.params.id;
-
-      const result = await carCollection.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: req.body }
-      );
-
-      res.send(result);
-    });
+  res.send(car);
+ });
 
     
+ app.post("/cars", verifyToken, async (req, res) => {
+   try {
+     const car = {
+     ...req.body,
+    booking_count: 0
+  };
+  const result = await carCollection.insertOne(car);
 
-    app.get("/my-cars", verifyToken, async (req, res) => {
-      const email = req.user.email;
+  res.send({
+    success: true,
+   insertedId: result.insertedId,
+  });
 
-      const result = await carCollection.find({
-        ownerEmail: email,
-      }).toArray();
+  } catch (err) {
+     res.status(500).send({ message: "Server error" });
+ }
+   });
 
-      res.send(result);
+ app.delete("/cars/:id", async (req, res) => {
+   const id = req.params.id;
+   const result = await carCollection.deleteOne({
+      _id: new ObjectId(id),
+  });
+  res.send(result);
     });
+
+ app.put("/cars/:id", async (req, res) => {
+   const id = req.params.id;
+   const result = await carCollection.updateOne(
+     { _id: new ObjectId(id) },
+    { $set: req.body }
+ );
+
+ res.send(result);
+ });
+
+ app.get("/my-cars", verifyToken, async (req, res) => {
+   const email = req.user.email;
+   const result = await carCollection.find({
+      ownerEmail: email,
+  }).toArray();
+
+ res.send(result);
+   });
 
     
-    app.post("/bookings", async (req, res) => {
-      const booking = req.body;
+ app.post("/bookings", async (req, res) => {
+    const booking = req.body;
+   const result = await bookingCollection.insertOne(booking);
 
-      const result = await bookingCollection.insertOne(booking);
+  await carCollection.updateOne(
+  { _id: new ObjectId(booking.carId) },
+  { $inc: { booking_count: 1 } }
+ );
 
-      await carCollection.updateOne(
-        { _id: new ObjectId(booking.carId) },
-        { $inc: { booking_count: 1 } }
-      );
+ res.send(result);
+ });
 
-      res.send(result);
-    });
+ app.get("/bookings", async (req, res) => {
 
-   app.get("/bookings", async (req, res) => {
-
-  const email = req.query.email;
-
+ const email = req.query.email;
   const query = {
     userEmail: email
   };
 
-  const result = await bookingCollection.find(query).toArray();
+const result = await bookingCollection.find(query).toArray();
 
   res.send(result);
 });
@@ -209,13 +200,10 @@ async function run() {
 
 run().catch(console.dir);
 
-
-
 app.get("/", (req, res) => {
   res.send("DriveFleet Server Running 🚗");
+
 });
-
-
 
 app.listen(port, () => {
   console.log("Server running on port", port);
