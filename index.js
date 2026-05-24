@@ -12,7 +12,9 @@ import { MongoClient, ObjectId } from "mongodb";
 
 app.use(cors({
 
-  origin: "http://localhost:5173",
+  origin: [ "http://localhost:5173",
+      "https://drivefleet-client-mu.vercel.app"
+  ],
   credentials: true
 
 }));
