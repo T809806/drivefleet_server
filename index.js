@@ -191,12 +191,15 @@ app.get("/cars/:id", async (req, res) => {
 
  app.get("/bookings", async (req, res) => {
 
- const email = req.query.email;
-  const query = {
-    userEmail: email
-  };
+  const email = req.query.email;
 
-const result = await bookingCollection.find(query).toArray();
+  let query = {};
+
+  if (email) {
+    query.userEmail = email;
+  }
+
+  const result = await bookingCollection.find(query).toArray();
 
   res.send(result);
 });
