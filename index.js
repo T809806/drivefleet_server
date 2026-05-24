@@ -11,14 +11,20 @@ import { MongoClient, ObjectId } from "mongodb";
     const port = process.env.PORT || 5000;
 
 app.use(cors({
-
-  origin: [ "http://localhost:5173",
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "http://localhost:5173",
       "https://drivefleet-client-mu.vercel.app"
-  ],
+    ];
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
-
 }));
-
 app.use(express.json());
 app.use(cookieParser());
 
@@ -65,8 +71,8 @@ async function run() {
 
 res.cookie("token", token, {
   httpOnly: true,
-  secure: false,
-  sameSite: "lax",
+  secure: true,
+  sameSite: "none",
   path: "/"
 
   });
